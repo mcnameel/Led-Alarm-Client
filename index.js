@@ -1,6 +1,5 @@
 /* This file contains the code to be run by my RaspberryPi */
 
-
 // Message Queuing Telemetry Transport Protocol (MQTT) is the standard 
 // alternative to HTTP for IOT devices. We will use it to communicate our
 // alarm data from our server to our microcontroller or 
