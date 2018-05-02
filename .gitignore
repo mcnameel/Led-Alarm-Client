@@ -1,5 +1,5 @@
 # Credentials
-*.mqtt_credentials.json
+/mqtt_credentials.json
 
 # Logs
 logs
