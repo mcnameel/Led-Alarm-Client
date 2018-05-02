@@ -15,11 +15,11 @@ const DEVICE = 'RaspberryPi' // Which device is this?
 // Create a set to store all the timestamp of when to activate
 var comingEvents = new Set()
 
-//For each color you need to specify on what GPIO pin is connected and that we will use in mode OUTPUT
-var ledRed = new Gpio(22, {mode: Gpio.OUTPUT});
-var ledGreen = new Gpio(17, {mode: Gpio.OUTPUT});
-var ledBlue = new Gpio(24, {mode: Gpio.OUTPUT});
-
+// For each color you need to specify on what GPIO pin is connected and that we
+//   will use in mode OUTPUT
+var ledRed = new Gpio(22, {mode: Gpio.OUTPUT}); // set the red led to pin #22
+var ledGreen = new Gpio(17, {mode: Gpio.OUTPUT});// set the green led to pin #17
+var ledBlue = new Gpio(24, {mode: Gpio.OUTPUT});// set the blue led to pin #24
 
 /* On Start */
 testLEDs(); // Make quick test for the leds
@@ -83,9 +83,13 @@ console.log(`\nAdded ${startTime} alarms`)
 }
 
 /**
-* recursivelty calls iteself to activate the leds slowly
-*/
-function increaseLEDs(r = 0, g = 0, b = 0) {
+ * recursivelty calls iteself to activate the leds slowly
+ * @param {int} r - The desired red value | default: 0
+ * @param {int} g - The desired green value | default: 0
+ * @param {int} b - The desired blue value | default: 0
+ * @param {int} speed - The delay between increasing value | default: 50
+ */
+function increaseLEDs(r = 0, g = 0, b = 0, speed = 50) {
   if (r === 0 && g === 0 && b === 0)
 	console.log('pew pew lights')
 	
@@ -93,39 +97,47 @@ function increaseLEDs(r = 0, g = 0, b = 0) {
   ledGreen.pwmWrite(g)
   ledBlue.pwmWrite(b)
   
-  if(r < 255)
-	setTimeout(() => increaseLEDs(r + 5, g, b), 25);
+  if(r < 255) // first incremement the red value until at max then same for b, g
+	setTimeout(() => increaseLEDs(r + 5, g, b, speed), speed);
   else if(b < 255)
-	setTimeout(() => increaseLEDs(r, g, b + 5), 25);
+	setTimeout(() => increaseLEDs(r, g, b + 5, speed), speed);
   else if(g < 255)
-	setTimeout(() => increaseLEDs(r, g + 5, b), 25);
+	setTimeout(() => increaseLEDs(r, g + 5, b, speed), speed);
   else { 
+	//time to go back to black
+	setTimeout(() => setLEDs(), 3000)
 	return;
   }
 }
 
 /**
 * Checks if the alarms are past their date then activates the alarms if they 
-* are
+* are past their time to activate it sets them off
 */
 function checkAlarm() {
-  setLEDs()
+  setLEDs() // set leds to 0 for convienience
   console.log('\nChecking Alarms')
-  var dateNow = new Date()
-  var timeNow = dateNow.getTime()
-  var removeUs = []
+  var dateNow = new Date()        // get current dateTime
+  var timeNow = dateNow.getTime() // get current date in the form of a timestamp
   
+  // holds the alarms that we will remove after they have been activated
+  var removeUs = [] 
+  
+  // For each time in our set of timestamps see if it is time to activate 
   comingEvents.forEach(function(element) {
-    if(timeNow > element) {
+    // if the current time is greater than the time of the alarm then it is 
+    //    time to activate the alarm
+    if(timeNow > element) {  
       console.log('Activating Alarm')
       increaseLEDs();
-      removeUs.push(element);
-    } else {
+       // push to list to signify the alarm has been handled
+      removeUs.push(element);    
+    } else { // calculate time until alarm sounds
 	  const timeLeft = element - timeNow
 	  console.log(`${timeLeft}ms until alarm activation`)
     }
   });
-  removeUs.forEach(function(element) {
+  removeUs.forEach(function(element) { // remove all activated alarms
 	console.log(`removing ${element} from comingEvents`)
 	comingEvents.delete(element)
   })
@@ -133,9 +145,9 @@ function checkAlarm() {
 
 /**
  * set the LEDs to the given values
- * @param {int} r - The desired red value
- * @param {int} g - The desired green value
- * @param {int} b - The desired blue value
+ * @param {int} r - The desired red value | default: 0
+ * @param {int} g - The desired green value | default: 0
+ * @param {int} b - The desired blue value | default: 0
  */
 function setLEDs(r = 0, g = 0, b = 0) {
   ledRed.pwmWrite(r)
@@ -143,6 +155,9 @@ function setLEDs(r = 0, g = 0, b = 0) {
   ledGreen.pwmWrite(b)
 }
  
+/**
+ * Sends GPIO signals to light up the leds to test their functionality
+ */
 function testLEDs() {
   // Set all LEDs to 0 (off)
   setLEDs()
@@ -164,5 +179,6 @@ function testLEDs() {
     }, 500)
   }, 500)
   
+  // After the test turn them off
   setTimeout(() => increaseLEDs(), 1000);
 }
