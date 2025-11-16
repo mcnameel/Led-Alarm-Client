@@ -1,3 +1,5 @@
+> **Note:** This project was created in 2018 as a class project to work with IOT technologies. It is no longer actively maintained.
+
 # Led-Alarm-Client
 The code for the RaspberryPi that will listen for messages through MQTT for when to wake me up in the morning
 
